@@ -1,50 +1,53 @@
-using System.Globalization;
-using GestionNotes;
+using System;
 
-const int NombreEtudiants = 4;
-var classe = new Classe();
-
-Console.WriteLine("=== Gestion des notes ===\n");
-
-// 1. Saisie des étudiants
-for (int i = 1; i <= NombreEtudiants; i++)
+namespace GestionNotes
 {
-    while (true)
+    public class Program
     {
-        Console.Write($"Nom de l'étudiant {i} : ");
-        try
+        public static void Main(string[] args)
         {
-            classe.AjouterEtudiant(new Etudiant(Console.ReadLine() ?? ""));
-            break;
+            Classe classe = new Classe(4);
+
+            for (int i = 0; i < classe.Nombre; i++)
+            {
+                Console.Write("Nom de l'etudiant " + (i + 1) + " : ");
+                string nom = Console.ReadLine();
+                classe.AjouterEtudiant(i, new Etudiant(nom));
+            }
+
+            for (int i = 0; i < classe.Nombre; i++)
+            {
+                Etudiant etudiant = classe.GetEtudiant(i);
+                Console.WriteLine();
+                Console.WriteLine("Notes de " + etudiant.Nom + " (laisser vide pour terminer) :");
+
+                while (true)
+                {
+                    Console.Write("Note : ");
+                    string saisie = Console.ReadLine();
+
+                    if (string.IsNullOrEmpty(saisie))
+                    {
+                        break;
+                    }
+
+                    double note;
+                    if (double.TryParse(saisie, out note) && note >= 0 && note <= 20)
+                    {
+                        etudiant.AjouterNote(note);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Note invalide (entre 0 et 20).");
+                    }
+                }
+            }
+
+            classe.Classer();
+
+            Console.WriteLine();
+            Console.WriteLine("=== Classement ===");
+            classe.Afficher();
         }
-        catch (ArgumentException ex) { Console.WriteLine($"  ! {ex.Message}"); }
     }
 }
-
-// 2. Saisie des notes (nombre illimité, ligne vide pour terminer)
-foreach (var etudiant in classe.Etudiants)
-{
-    Console.WriteLine($"\nNotes de {etudiant.Nom} (Entrée sur une ligne vide pour terminer) :");
-    while (true)
-    {
-        Console.Write($"  Note n°{etudiant.Notes.Count + 1} : ");
-        string? saisie = Console.ReadLine();
-        if (string.IsNullOrWhiteSpace(saisie)) break;
-
-        // Accepte "12,5" et "12.5"
-        if (!double.TryParse(saisie.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out double note))
-        {
-            Console.WriteLine("  ! Saisie invalide, entrez un nombre.");
-            continue;
-        }
-        try { etudiant.AjouterNote(note); }
-        catch (ArgumentOutOfRangeException) { Console.WriteLine($"  ! La note doit être entre {Etudiant.NoteMin} et {Etudiant.NoteMax}."); }
-    }
-}
-
-// 3. Classement et affichage
-Console.WriteLine("\n=== Classement ===");
-Console.WriteLine($"{"Rang",4}  {"Nom",-15} {"Moyenne",7}   Notes");
-Console.WriteLine(new string('-', 60));
-foreach (var e in classe.Classer())
-    Console.WriteLine(e);

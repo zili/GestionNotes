@@ -1,37 +1,63 @@
-namespace GestionNotes;
-
-/// <summary>
-/// Regroupe les étudiants et porte la logique de classement.
-/// </summary>
-public class Classe
+namespace GestionNotes
 {
-    private readonly List<Etudiant> _etudiants = new();
-
-    public IReadOnlyList<Etudiant> Etudiants => _etudiants;
-
-    public void AjouterEtudiant(Etudiant etudiant) => _etudiants.Add(etudiant);
-
-    /// <summary>
-    /// Calcule les rangs (classement "olympique" : ex æquo = même rang, le suivant saute).
-    /// Les étudiants sans note sont placés en fin de liste, sans rang (0).
-    /// </summary>
-    public List<Etudiant> Classer()
+    public class Classe
     {
-        var classes = _etudiants
-            .Where(e => e.Moyenne.HasValue)
-            .OrderByDescending(e => e.Moyenne)
-            .ThenBy(e => e.Nom)
-            .ToList();
+        private Etudiant[] etudiants;
 
-        for (int i = 0; i < classes.Count; i++)
+        public Classe(int nombre)
         {
-            bool exAequo = i > 0 && Math.Abs(classes[i].Moyenne!.Value - classes[i - 1].Moyenne!.Value) < 1e-9;
-            classes[i].Rang = exAequo ? classes[i - 1].Rang : i + 1;
+            etudiants = new Etudiant[nombre];
         }
 
-        var sansNote = _etudiants.Where(e => !e.Moyenne.HasValue).ToList();
-        sansNote.ForEach(e => e.Rang = 0);
+        public int Nombre
+        {
+            get { return etudiants.Length; }
+        }
 
-        return classes.Concat(sansNote).ToList();
+        public void AjouterEtudiant(int index, Etudiant etudiant)
+        {
+            etudiants[index] = etudiant;
+        }
+
+        public Etudiant GetEtudiant(int index)
+        {
+            return etudiants[index];
+        }
+
+        public void Classer()
+        {
+            for (int i = 0; i < etudiants.Length - 1; i++)
+            {
+                for (int j = 0; j < etudiants.Length - 1 - i; j++)
+                {
+                    if (etudiants[j].CalculerMoyenne() < etudiants[j + 1].CalculerMoyenne())
+                    {
+                        Etudiant temp = etudiants[j];
+                        etudiants[j] = etudiants[j + 1];
+                        etudiants[j + 1] = temp;
+                    }
+                }
+            }
+
+            for (int i = 0; i < etudiants.Length; i++)
+            {
+                if (i > 0 && etudiants[i].CalculerMoyenne() == etudiants[i - 1].CalculerMoyenne())
+                {
+                    etudiants[i].Rang = etudiants[i - 1].Rang;
+                }
+                else
+                {
+                    etudiants[i].Rang = i + 1;
+                }
+            }
+        }
+
+        public void Afficher()
+        {
+            for (int i = 0; i < etudiants.Length; i++)
+            {
+                etudiants[i].Afficher();
+            }
+        }
     }
 }
