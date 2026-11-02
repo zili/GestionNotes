@@ -1,6 +1,6 @@
 # GestionNotes
 
-Application console C# de gestion des notes pour 4 étudiants (programmation orientée objet).
+Application console C# (.NET 10) de gestion des notes pour 4 étudiants (programmation orientée objet).
 
 ## Fonctionnalités
 - Saisie des noms des 4 étudiants
